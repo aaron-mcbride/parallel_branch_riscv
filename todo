@@ -1,5 +1,5 @@
 # TODO
-- [ ] Create fetch stage module (Luke)
+- [ ] Create fetch stage module (2 fetch stages) (Luke)
 - [ ] Create decode stage module (2 decode stages) (Luke)
 - [ ] Create execute stage module (2 execute stages) (Aaron)
 - [ ] Create memory stage module (Aaron)
@@ -12,4 +12,3 @@
 # INFO
 - Each stage should have a ready signal
 - Each stage should have a halt signal
-- 
