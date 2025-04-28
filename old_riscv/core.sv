@@ -735,7 +735,7 @@ module core_pc_manager #(
         pc = ex_mem.pc;
       end
     end else if (id_ex.valid && (get_opcode(id_ex.inst) == OPCODE_JALR)) begin
-      if (ex_mem.valid && has_rd(ex_mem.inst) && get_rs1(if_id.inst) == ex_mem.rd) begin
+      if (ex_mem.valid && has_rd(ex_mem.inst) && get_rs1(id_ex.inst) == ex_mem.rd) begin
         if (get_opcode(ex_mem.inst) == OPCODE_LOAD) begin
           decode_stall = '1;
         end else begin
