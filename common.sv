@@ -196,15 +196,17 @@ endpackage
 package mem;
 
   // System size constants
-  localparam int word_width = 32;
   localparam int addr_width = 32;
+  localparam int word_width = 32;
+  localparam int half_width = 16;
+  localparam int byte_width = 8;
 
   // System types
   typedef logic [word_width-1:0] word_t;
   typedef logic [addr_width-1:0] addr_t;
 
   // Memory request mask type
-  typedef logic [(word_width/8)-1:0] mem_req_mask_t;
+  typedef logic [(word_width/byte_width)-1:0] mem_req_mask_t;
 
   // Memory request mask constants
   localparam mem_req_mask_t mem_req_byte_mask = 'b0001;
@@ -298,7 +300,8 @@ package core;
     rv32i::reg_t rs1_value;
     rv32i::reg_t rs2_value;
     rv32i::reg_t ex_result;
-    rv32i::reg_t alt_ex_result;
+    sys::addr_t ex_addr;
+    sys::mem_req_mask_t ex_mask;
     bool valid;
   } ex_mem_t;
 
@@ -310,7 +313,8 @@ package core;
     rv32i::reg_t rs1_value;
     rv32i::reg_t rs2_value;
     rv32i::reg_t ex_result;
-    rv32i::reg_t alt_ex_result;
+    sys::addr_t ex_addr;
+    sys::mem_req_mask_t ex_mask;
     sys::word_t mem_result;
     bool valid;
   } mem_asm_t;
@@ -323,7 +327,8 @@ package core;
     rv32i::reg_t rs1_value;
     rv32i::reg_t rs2_value;
     rv32i::reg_t ex_result;
-    rv32i::reg_t alt_ex_result;
+    sys::addr_t ex_addr;
+    sys::mem_req_mask_t ex_mask;
     sys::word_t mem_result;
     sys::reg_t asm_result; 
     bool valid;
@@ -355,13 +360,13 @@ package core;
   // Register file write request arguments
   typedef struct packed {
     rv32i::reg_addr_t reg_addr;
-    rv32i::reg_t data;
+    rv32i::reg_t value;
     bool en;
   } rf_write_req_t;
 
   // Register file read response arguments
   typedef struct packed {
-    rv32i::reg_t data;
+    rv32i::reg_t value;
     bool valid;
     bool done;
   } rf_read_rsp_t;
@@ -379,10 +384,34 @@ package core;
   localparam rf_read_rsp_t rf_read_rsp_rst   = '0;
   localparam rf_write_rsp_t rf_write_rsp_rst = '0;
 
-  // TODO
-  // typedef struct packed {
-  //   rv32i::reg_addr_t active_Reg;
-  // } reg_use_table_t;
+endpackage
+
+package util;
+
+  // Creates a bit mask with the specified length and position.
+  function automatic sys::word_t get_mask(input int len, input int pos);
+    return {len{1'b1}} << pos;
+  endfunction
+
+  // Moves a value into the position of a field at the specified position.
+  function automatic sys::word_t v2f(input sys::word_t value, input int len, input int pos);
+    return (value & get_mask(len, pos)) << pos;
+  endfunction
+
+  // Extracts a value from a field at the specified position.
+  function automatic sys::word_t f2v(input sys::word_t value, input int len, input int pos);
+    return (value >> pos) & get_mask(len, pos);
+  endfunction
+
+  // Gets the offset of a memory address in bytes (from word aligned address).
+  function automatic sys::addr_t addr_off(input sys::addr_t addr);
+    return addr[$clog2(sys::word_width/sys::byte_width)-1:0];
+  endfunction
+
+  // Sign extends a value (x) from src_len to dst_len (given in bits).
+  function automatic sys::word_t sext(input int dst_len, input int src_len, input sys::word_t value);
+    return {{(dst_len - src_len){value[src_len-1]}}, value[src_len-1:0]};
+  endfunction
 
 endpackage
 

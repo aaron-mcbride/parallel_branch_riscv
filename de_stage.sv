@@ -1,9 +1,10 @@
 `include "common.sv"
 
-`ifndef __DECODE_STAGE_SV__
-`define __DECODE_STAGE_SV__
+`ifndef __DE_STAGE_SV__
+`define __DE_STAGE_SV__
 
-module decode_stage (
+// Decode stage module
+module de_stage (
   input logic clk,
   input bool rst,
   input bool en,
@@ -123,4 +124,4 @@ module decode_stage (
 
 endmodule
 
-`endif // __DECODE_STAGE_SV__
+`endif // __DE_STAGE_SV__

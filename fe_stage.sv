@@ -1,9 +1,10 @@
 `include "common.sv"
 
-`ifndef __FETCH_STAGE_SV__
-`define __FETCH_STAGE_SV__
+`ifndef __FE_STAGE_SV__
+`define __FE_STAGE_SV__
 
-module fetch_stage (
+// Fetch stage module
+module fe_stage (
   input logic clk,
   input bool rst,
   input bool en,
@@ -20,7 +21,7 @@ module fetch_stage (
 
   // Instruction read request logic
   assign inst_read_req.addr = pc;
-  assign inst_read_req.mask = '{(rv32i::inst_width/8){1'b1}};
+  assign inst_read_req.mask = '{(rv32i::inst_width/byte_width){1'b1}};
   assign inst_read_req.en = en && !rst;
   
   // Pipeline register update logic
@@ -36,4 +37,4 @@ module fetch_stage (
 
 endmodule
 
-`endif // __FETCH_STAGE_SV__
+`endif // __FE_STAGE_SV__
