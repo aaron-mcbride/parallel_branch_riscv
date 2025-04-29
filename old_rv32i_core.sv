@@ -277,9 +277,9 @@ function automatic imm_t get_imm(input inst_t inst);
   case (get_opcode(inst))
     OPCODE_LUI:     return {inst[31:12], 12'b0};                                        // U-type
     OPCODE_AUIPC:   return {inst[31:12], 12'b0};                                        // U-type
-    OPCODE_JAL:     return {{11{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};  // J-type, sign-extended with 11 copies of inst[31]
+    OPCODE_JAL:     return {{12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};  // J-type, sign-extended with 11 copies of inst[31]
     OPCODE_JALR:    return {{20{inst[31]}}, inst[31:20]};                               // I-type
-    OPCODE_BRANCH:  return {{19{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};    // B-type, sign-extended with 19 copies of inst[31]
+    OPCODE_BRANCH:  return {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};    // B-type, sign-extended with 19 copies of inst[31]
     OPCODE_LOAD:    return {{20{inst[31]}}, inst[31:20]};                               // I-type
     OPCODE_STORE:   return {{20{inst[31]}}, inst[31:25], inst[11:7]};                   // S-type
     OPCODE_OP_IMM:  return {{20{inst[31]}}, inst[31:20]};                               // I-type
@@ -676,7 +676,7 @@ endmodule
       prev_rs2_req <= rs2_req;
       prev_rd_req  <= rd_req;
     end
-    $display("RA: %0d", reg_mem[REG_RA]);
+    $display("SP: 0x%0X", reg_mem[REG_SP]);
   end
 
 endmodule
@@ -730,18 +730,19 @@ module core_pc_manager #(
         (ex_mem.ex_result != ex_mem.branch_pred)) begin
       flush_flag = '1;
       if (ex_mem.ex_result) begin
-        pc = ex_mem.pc + get_imm(ex_mem.inst) - 4;
+        pc = ex_mem.pc + get_imm(ex_mem.inst);
       end else begin
-        pc = ex_mem.pc;
+        pc = ex_mem.pc + 4;
       end
     end else if (id_ex.valid && (get_opcode(id_ex.inst) == OPCODE_JALR)) begin
+      flush_flag = '1;
       if (ex_mem.valid && has_rd(ex_mem.inst) && get_rs1(id_ex.inst) == ex_mem.rd) begin
         if (get_opcode(ex_mem.inst) == OPCODE_LOAD) begin
           decode_stall = '1;
         end else begin
           pc = (ex_mem.ex_result + id_ex.imm) & ~1;
         end
-      end else if (mem_wb.valid && has_rd(mem_wb.inst) && get_rs1(if_id.inst) == mem_wb.rd) begin
+      end else if (mem_wb.valid && has_rd(mem_wb.inst) && get_rs1(id_ex.inst) == mem_wb.rd) begin
         if (get_opcode(mem_wb.inst) == OPCODE_LOAD) begin
           pc = (mem_wb.load_result + id_ex.imm) & ~1;
         end else begin
@@ -857,57 +858,53 @@ module core_hazard_unit (
 
   always @(*) begin
     execute_stall = '0;
-    fetch_stall = '0;
-    fwd_id_rs1 = id_ex.rs1_data;
-    fwd_id_rs2 = id_ex.rs2_data;
-    fwd_ex_rs2 = ex_mem.rs2_data;
-    if (id_rs1_valid && (id_rs1 != REG_ZERO)) begin
-      if (ex_rd_valid && (id_rs1 == ex_rd)) begin
-        if (ex_opcode == OPCODE_LOAD) begin
-          execute_stall = '1;
-        end else begin
-          fwd_id_rs1 = ex_mem.ex_result;
-        end
-      end else if (mem_rd_valid && (id_rs1 == mem_rd)) begin
+    fetch_stall   = '0;
+    fwd_id_rs1    = id_ex.rs1_data;
+    fwd_id_rs2    = id_ex.rs2_data;
+    fwd_ex_rs2    = ex_mem.rs2_data;
+    if (ex_rd_valid && (ex_opcode == OPCODE_LOAD)) begin
+      if (id_rs1_valid && (id_rs1 != REG_ZERO) && (id_rs1 == ex_rd)) begin
+        execute_stall = '1;
+      end
+      if (id_rs2_valid && (id_rs2 != REG_ZERO) && (id_rs2 == ex_rd)) begin
+        execute_stall = '1;
+      end
+    end
+    if (if_id.valid && (get_opcode(if_id.inst) == OPCODE_JALR)) begin
+      fetch_stall = '1;
+    end
+    if (!execute_stall && id_rs1_valid && (id_rs1 != REG_ZERO)) begin
+      if (ex_rd_valid && (ex_opcode != OPCODE_LOAD) && (id_rs1 == ex_rd)) begin
+        fwd_id_rs1 = ex_mem.ex_result;
+      end
+      else if (mem_rd_valid && (id_rs1 == mem_rd)) begin
         if (mem_opcode == OPCODE_LOAD) begin
           fwd_id_rs1 = mem_wb.load_result;
         end else begin
           fwd_id_rs1 = mem_wb.ex_result;
         end
-      end else if (id_rs1 == prev_mem_rd_num) begin
-        fwd_id_rs1 = prev_mem_fwd;
       end
     end
-    if (id_rs2_valid && (id_rs2 != REG_ZERO)) begin
-      if (ex_rd_valid && (id_rs2 == ex_rd)) begin
-        if (ex_opcode == OPCODE_LOAD) begin
-          execute_stall = '1;
-        end else begin
-          fwd_id_rs2 = ex_mem.ex_result;
-        end
-      end else if (mem_rd_valid && (id_rs2 == mem_rd)) begin
+    if (!execute_stall && id_rs2_valid && (id_rs2 != REG_ZERO)) begin
+      if (ex_rd_valid && (ex_opcode != OPCODE_LOAD) && (id_rs2 == ex_rd)) begin
+        fwd_id_rs2 = ex_mem.ex_result;
+      end
+      else if (mem_rd_valid && (id_rs2 == mem_rd)) begin
         if (mem_opcode == OPCODE_LOAD) begin
           fwd_id_rs2 = mem_wb.load_result;
         end else begin
           fwd_id_rs2 = mem_wb.ex_result;
         end
-      end else if (id_rs2 == prev_mem_rd_num) begin
-        fwd_id_rs2 = prev_mem_fwd;
       end
     end
-    if (ex_rs2_valid && (ex_rs2 != REG_ZERO)) begin
+    if (ex_rs2_valid && (ex_opcode == OPCODE_STORE) && (ex_rs2 != REG_ZERO)) begin
       if (mem_rd_valid && (ex_rs2 == mem_rd)) begin
         if (mem_opcode == OPCODE_LOAD) begin
           fwd_ex_rs2 = mem_wb.load_result;
         end else begin
           fwd_ex_rs2 = mem_wb.ex_result;
         end
-      end else if (ex_rs2 == prev_mem_rd_num) begin
-        fwd_ex_rs2 = prev_mem_fwd;
       end
-    end
-    if (if_id.valid && get_opcode(if_id.inst) == OPCODE_JALR) begin
-      fetch_stall = '1;
     end
   end
 
