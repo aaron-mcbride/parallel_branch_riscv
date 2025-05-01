@@ -9,7 +9,7 @@ module ex_stage (
   input bool rst,
   input bool en,
   input bool next_rdy,
-  input core::reg_fwd_t reg_fwd,
+  input core::reg_byp_t reg_byp,
   input core::rd_ex_t rd_ex,
   output core::ex_mem_t ex_mem,
   output bool rdy
@@ -18,23 +18,26 @@ module ex_stage (
   // Ready flag logic
   assign rdy = en && next_rdy;
 
-  // RS1 value selection logic (forwarding)
+  // RS1 value selection logic (bypassing)
   rv32i::reg_t rs1_sel_value;
-  assign rs1_sel_value = reg_fwd.fwd_rs1_valid ? 
-      reg_fwd.fwd_rs1_value : rd_ex.rs1_value;
+  assign rs1_sel_value = reg_byp.byp_rs1_valid ? 
+      reg_byp.byp_rs1_value : rd_ex.rs1_value;
 
-  // RS2 value selection logic (forwarding)
+  // RS2 value selection logic (bypassing)
   rv32i::reg_t rs2_sel_value;
-  assign rs2_sel_value = reg_fwd.fwd_rs2_valid ? 
-      reg_fwd.fwd_rs2_value : rd_ex.rs2_value;
+  assign rs2_sel_value = reg_byp.byp_rs2_valid ? 
+      reg_byp.byp_rs2_value : rd_ex.rs2_value;
 
   // Primary instruction arithmetic execution logic
+  bool next_rd_rdy;
   rv32i::reg_t next_ex_result;
   always @(*) begin
     next_ex_result <= '0;
+    next_rd_rdy    <= false;
     if (rd_ex.valid) begin
       case (rd_ex.de_inst.opcode)
         rv32i::opcode_op: begin
+          next_rd_rdy <= true;
           case (rd_ex.de_inst.funct3)
             rv32i::funct3_op_sll: begin
               next_ex_result = rs1_sel_value << rs2_sel_value[4:0];
@@ -71,6 +74,7 @@ module ex_stage (
           endcase
         end
         rv32i::opcode_imm_op: begin
+          next_rd_rdy <= true;
           case (rd_ex.de_inst.funct3)
             rv32i::funct3_imm_op_xori: begin
               next_ex_result = rs1_sel_value ^ rd_ex.de_inst.imm;
@@ -125,9 +129,11 @@ module ex_stage (
           endcase
         end
         rv32i::opcode_lui: begin
+          next_rd_rdy <= true;
           next_ex_result = rd_ex.de_inst.imm;
         end
         rv32i::opcode_auipc: begin
+          next_rd_rdy <= true;
           next_ex_result = rd_ex.pc + rd_ex.de_inst.imm;
         end
         rv32i::opcode_store: begin
@@ -225,6 +231,7 @@ module ex_stage (
       ex_mem.ex_result <= next_ex_result;
       ex_mem.ex_addr   <= next_ex_addr;
       ex_mem.ex_mask   <= next_ex_mask;
+      ex_mem.rd_rdy    <= next_rd_rdy;
       ex_mem.valid     <= en && rd_ex.valid;
     end
   end

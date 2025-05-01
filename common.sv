@@ -302,8 +302,9 @@ package core;
     rv32i::reg_t ex_result;
     sys::addr_t ex_addr;
     sys::mem_req_mask_t ex_mask;
+    bool rd_rdy;
     bool valid;
-  } ex_mem_t;
+  } ex_mem;
 
   // Memory/assemble stage pipeline registers
   typedef struct packed {
@@ -314,8 +315,8 @@ package core;
     rv32i::reg_t rs2_value;
     rv32i::reg_t ex_result;
     sys::addr_t ex_addr;
-    sys::mem_req_mask_t ex_mask;
     sys::word_t mem_result;
+    bool rd_rdy;
     bool valid;
   } mem_asm_t;
 
@@ -326,11 +327,7 @@ package core;
     de_inst_t de_inst;
     rv32i::reg_t rs1_value;
     rv32i::reg_t rs2_value;
-    rv32i::reg_t ex_result;
-    sys::addr_t ex_addr;
-    sys::mem_req_mask_t ex_mask;
-    sys::word_t mem_result;
-    sys::reg_t asm_result; 
+    rv32i::reg_t asm_result;
     bool valid;
   } asm_wb_t;
 
@@ -343,13 +340,13 @@ package core;
   localparam mem_asm_t mem_asm_rst = '0;
   localparam asm_wb_t asm_wb_rst   = '0;
 
-  // Register forwarding info
+  // Register bypassing info
   typedef struct packed {
-    rv32i::reg_t fwd_rs1_value;
-    rv32i::reg_t fwd_rs2_value;
-    bool fwd_rs1_valid;
-    bool fwd_rs2_valid;
-  } reg_fwd_t;
+    rv32i::reg_t byp_rs1_value;
+    rv32i::reg_t byp_rs2_value;
+    bool byp_rs1_valid;
+    bool byp_rs2_valid;
+  } reg_byp_t;
 
   // Register file read request arguments
   typedef struct packed {

@@ -41,15 +41,15 @@ module mem_stage (
     if (rst) begin
       mem_asm <= core::mem_asm_rst;
     end else if (next_rdy) begin
-      mem_asm.pc        <= ex_mem.pc;
-      mem_asm.de_inst   <= ex_mem.de_inst;
-      mem_asm.rs1_value <= ex_mem.rs1_value;
-      mem_asm.rs2_value <= ex_mem.rs2_value;
-      mem_asm.ex_result <= ex_mem.ex_result;
-      mem_asm.ex_addr   <= ex_mem.ex_addr;
-      mem_asm.ex_mask   <= ex_mem.ex_mask;
-      mem_asm.mem_data  <= mem_read_rsp.data;
-      mem_asm.valid     <= en && ex_mem.valid && 
+      mem_asm.pc         <= ex_mem.pc;
+      mem_asm.de_inst    <= ex_mem.de_inst;
+      mem_asm.rs1_value  <= ex_mem.rs1_value;
+      mem_asm.rs2_value  <= ex_mem.rs2_value;
+      mem_asm.ex_result  <= ex_mem.ex_result;
+      mem_asm.ex_addr    <= ex_mem.ex_addr;
+      mem_asm.mem_result <= mem_read_rsp.data;
+      mem_asm.rd_rdy     <= ex_mem.rd_rdy;
+      mem_asm.valid      <= en && ex_mem.valid && 
           (!mem_read_req.en  || (mem_read_rsp.valid  && mem_read_rsp.done )) &&
           (!mem_write_req.en || (mem_write_rsp.valid && mem_write_rsp.done));
     end
