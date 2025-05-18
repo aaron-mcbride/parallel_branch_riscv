@@ -17,18 +17,18 @@ package rv32i;
     localparam int funct3_width = 3;
     localparam int funct7_width = 7;
     localparam int imm_width    = 32;
-    localparam int reg_count    = 32;
+    localparam int reg_cnt      = 32;
     localparam int reg_width    = 32;
     localparam int inst_width   = 32;
 
     // Instruction field types
-    typedef logic [opcode_width-1:0] opcode_t;
-    typedef logic [funct3_width-1:0] funct3_t;
-    typedef logic [funct7_width-1:0] funct7_t;
-    typedef logic [imm_width-1:0] imm_t;
-    typedef logic [$clog2(reg_count)-1:0] reg_addr_t;
-    typedef logic [reg_width-1:0] reg_t;
-    typedef logic [inst_width-1:0] inst_t;
+    typedef logic [(opcode_width - 1):0] opcode_t;
+    typedef logic [(funct3_width - 1):0] funct3_t;
+    typedef logic [(funct7_width - 1):0] funct7_t;
+    typedef logic [(imm_width - 1):0] imm_t;
+    typedef logic [($clog2(reg_cnt) - 1):0] reg_addr_t;
+    typedef logic [(reg_width - 1):0] reg_t;
+    typedef logic [(inst_width - 1):0] inst_t;
 
     // Extract opcode from instruction
     function automatic opcode_t get_opcode(inst_t inst);
@@ -365,7 +365,6 @@ package core;
   typedef struct packed {
     rv32i::reg_t value;
     bool valid;
-    bool done;
   } rf_read_rsp_t;
 
   // Register file write response arguments
@@ -380,6 +379,60 @@ package core;
   localparam rf_write_req_t rf_write_req_rst = '0;
   localparam rf_read_rsp_t rf_read_rsp_rst   = '0;
   localparam rf_write_rsp_t rf_write_rsp_rst = '0;
+
+  // Max number of predictions from target predictor
+  localparam int targ_pred_cnt = 3;
+
+  // Target prediction request arguments
+  typedef struct packed {
+    sys::addr_t base_pc;
+    bool valid;
+  } targ_pred_req_t;
+
+  // Target prediction response arguments
+  typedef struct packed {
+    sys::addr_t pred_pc [targ_pred_cnt];
+    bool valid [targ_pred_cnt];
+  } targ_pred_rsp_t;
+
+  // Target prediction feedback information
+  typedef struct packed {
+    sys::addr_t base_pc;
+    sys::addr_t targ_pc;
+    bool valid;
+  } targ_pred_fb_t;
+
+  // Target predictor request/response/feedback reset constants
+  localparam targ_pred_req_t targ_pred_req_rst = '0;
+  localparam targ_pred_rsp_t targ_pred_rsp_rst = '0;
+  localparam targ_pred_fb_t targ_pred_fb_rst = '0;
+
+  // Branch prediction request arguments
+  typedef struct packed {
+    sys::addr_t base_pc;
+    sys::addr_t targ_pc;
+    bool valid;
+  } branch_pred_req_t;
+
+  // Branch prediction response arguments
+  typedef struct packed {
+    bool exec_taken;
+    bool exec_ntaken;
+    bool valid;
+  } branch_pred_rsp_t;
+
+  // Branch prediction feedback information
+  typedef struct packed {
+    sys::addr_t base_pc;
+    sys::addr_t targ_pc;
+    bool taken;
+    bool valid;
+  } branch_pred_fb_t;
+
+  // Branch predictor request/response/feedback reset constants
+  localparam branch_pred_req_t branch_pred_req_rst = '0;
+  localparam branch_pred_rsp_t branch_pred_rsp_rst = '0;
+  localparam branch_pred_fb_t branch_pred_fb_rst = '0;  
 
 endpackage
 
@@ -402,12 +455,17 @@ package util;
 
   // Gets the offset of a memory address in bytes (from word aligned address).
   function automatic sys::addr_t addr_off(input sys::addr_t addr);
-    return addr[$clog2(sys::word_width/sys::byte_width)-1:0];
+    return addr[($clog2(sys::word_width/sys::byte_width) - 1):0];
+  endfunction
+
+  // Aligns a memory address to the nearest word boundary.
+  function automatic sys::addr_t align_addr(input sys::addr_t addr);
+    return addr[(sys::addr_width - 1):$clog2(sys::word_width/sys::byte_width)];
   endfunction
 
   // Sign extends a value (x) from src_len to dst_len (given in bits).
   function automatic sys::word_t sext(input int dst_len, input int src_len, input sys::word_t value);
-    return {{(dst_len - src_len){value[src_len-1]}}, value[src_len-1:0]};
+    return {{(dst_len - src_len){value[src_len - 1]}}, value[(src_len - 1):0]};
   endfunction
 
 endpackage

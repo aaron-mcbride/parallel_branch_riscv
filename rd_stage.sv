@@ -36,7 +36,7 @@ module rd_stage (
       !rs2_use_flag && id_rd.de_inst.has_rs2 && !rst;
   
   // Pipeline register update logic
-  always @(posedge clk, posegde rst) begin
+  always @(posedge clk, posedge rst) begin
     if (rst) begin
       rd_ex <= core::rd_ex_rst;
     end else if (next_rdy) begin
@@ -46,8 +46,8 @@ module rd_stage (
       rd_ex.rs1_value <= rs1_rf_read_rsp.value;
       rd_ex.rs2_value <= rs2_rf_read_rsp.value;     
       rd_ex.valid     <= en && id_rd.valid &&
-          (!rs1_rf_read_req.en || (rs1_rf_read_rsp.valid && rs1_rf_read_rsp.done)) &&
-          (!rs2_rf_read_req.en || (rs2_rf_read_rsp.valid && rs2_rf_read_rsp.done));
+          (!rs1_rf_read_req.en || rs1_rf_read_rsp.valid) &&
+          (!rs2_rf_read_req.en || rs2_rf_read_rsp.valid);
     end
   end
 
