@@ -381,7 +381,10 @@ package core;
   localparam rf_write_rsp_t rf_write_rsp_rst = '0;
 
   // Max number of predictions from target predictor
-  localparam int targ_pred_cnt = 3;
+  localparam int max_targ_pred_cnt = 3;
+
+  // Numeric type to represent index of target prediction
+  typedef logic [($clog2(max_targ_pred_cnt) - 1):0] targ_pred_index_t;
 
   // Target prediction request arguments
   typedef struct packed {
@@ -391,8 +394,8 @@ package core;
 
   // Target prediction response arguments
   typedef struct packed {
-    sys::addr_t pred_pc [targ_pred_cnt];
-    bool valid [targ_pred_cnt];
+    sys::addr_t pred_pc [max_targ_pred_cnt];
+    targ_pred_index_t pred_cnt;
   } targ_pred_rsp_t;
 
   // Target prediction feedback information
@@ -416,8 +419,8 @@ package core;
 
   // Branch prediction response arguments
   typedef struct packed {
-    bool exec_taken;
-    bool exec_ntaken;
+    bool pred_taken;
+    bool exec_alt;
     bool valid;
   } branch_pred_rsp_t;
 

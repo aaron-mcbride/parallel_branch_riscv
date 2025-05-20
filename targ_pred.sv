@@ -4,45 +4,62 @@
 `define __TARG_PRED_SV__
 
 module targ_pred #(
-  parameter int s_pipe_cnt = 3,
-  parameter int table_cnt = 2,
+  parameter int req_ports = 3,
   parameter int table_size = 32,
-  parameter int table_width = 3,
-  parameter int hist_thresh = 1,
+  parameter int hist_size = 3
 ) (
   input logic clk,
   input logic rst,
   input logic en,
-  input logic [($clog2(table_cnt) - 1):0] table_index,
-  input core::targ_pred_req_t req [s_pipe_cnt],
-  input core::targ_pred_fb_t fb,
-  output core::targ_pred_rsp_t rsp [s_pipe_cnt]
+  input core::targ_pred_req_t targ_pred_req [req_ports],
+  input core::targ_pred_fb_t targ_pred_fb,
+  output core::targ_pred_rsp_t targ_pred_rsp [req_ports]
 );
 
-  // Numeric types for history and
-  typedef logic [(hist_width - 1):0] hist_value_t;
+  // Numeric types for representing table index and history index
+  typedef logic [($clog2(table_size) - 1):0] table_index_t;
+  typedef logic [($clog2(hist_size) - 1):0] hist_index_t;
 
-  // Table entry struct type
-  typedef struct packed {
-    hist_value_t hist_value [table_width];
-    sys::addr_t targ_addr [table_width];
-    bool valid;
-  } target_info_t;
-    
-  // Target prediction tables
-  target_info_t targ_pred_table [table_cnt][table_size];
+  // Target history memory
+  hist_index_t targ_hist [table_size][hist_size];
 
-  // Prediction request response logic
-  target_info_t cur_targ_info [s_pipe_cnt];
+  // Feedback/target history update logic
+  table_index_t fb_table_index;
+  always @(posedge clk, posedge rst) begin
+    if (rst) begin
+      for (int i = 0; i < table_size; i++) begin
+        for (int j = 0; j < hist_size; j++) begin
+          targ_hist[i][j] <= '0;
+        end
+      end
+    end else if (en && targ_pred_fb.valid) begin
+      fb_table_index = targ_pred_fb.base_pc % table_size;
+      for (int i = (hist_size - 1); i > 0; i--) begin
+        targ_hist[fb_table_index][i] <= targ_hist[fb_table_index][i - 1];
+      end
+      targ_hist[fb_table_index][0] <= targ_pred_fb.targ_pc;
+    end
+  end
+
+  // Target prediction request/response logic
+  table_index_t req_table_index;
+  bool rsp_targ_found_flag;
   always @(*) begin
-    for (int i = 0; i < s_pipe_cnt; i++) begin
-      rsp[i] = core::targ_pred_rsp_rst;
-      if (en && req.valid) begin
-        cur_targ_info[i] = targ_pred_table[table_index]
-            [req[i].addr[($clog2(table_size) - 1):0]];
-        if (cur_targ_info[i].valid) begin
-          for (int j = 0; j < table_width; j++) begin
-            if (cur_targ_info[i].hist_value)
+    req_table_index = '0;
+    for (int i = 0; i < req_ports; i++) begin
+      targ_pred_rsp[i] = core::targ_pred_rsp_rst;
+      if (en && targ_pred_req[i].valid) begin
+        req_table_index = targ_pred_req[i].base_pc % table_size;
+        for (int j = 0; j < core::max_targ_pred_cnt; j++) begin
+          rsp_targ_found_flag = false;
+          for (int k = 0; k < j; k++) begin
+            if (targ_pred_rsp[i].pred_pc[k] == targ_hist[req_table_index][j]) begin
+              rsp_targ_found_flag = true;
+            end
+          end
+          if (!rsp_targ_found_flag) begin
+            targ_pred_rsp[i].pred_pc[j] = targ_hist[req_table_index][j];
+            targ_pred_rsp[i].pred_cnt++;
           end
         end
       end

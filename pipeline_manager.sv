@@ -49,8 +49,7 @@ module s_pipe_manager #(
   // Signals for s-pipe management logic
   s_pipe_info_t next_s_pipe_info [s_pipe_cnt];
   s_pipe_id_t next_head_s_pipe_id;
-  bool base_pred_flag [s_pipe_cnt];
-  bool init_found_flag [s_pipe_cnt];
+  bool init_found_flag;
   bool eval_found_flag;
 
   // Non-speculative output from execute stage
@@ -66,8 +65,6 @@ module s_pipe_manager #(
       branch_pred_req[i] = core::branch_pred_req_rst;
       targ_pred_fb = core::targ_pred_fb_rst;
       branch_pred_fb = core::branch_pred_fb_rst;
-      base_pred_flag[i] = false;
-      init_found_flag[i] = false;
       s_pipe_pc[i] = if_id[i].pc;
       s_pipe_en[i] = false;
       s_pipe_rst[i] = false;
@@ -91,6 +88,7 @@ module s_pipe_manager #(
         end
       endcase
       for (int i = 0; i < s_pipe_cnt; i++) begin
+        init_found_flag = false;
         if ((next_s_pipe_info[i].base_pc == ex_mem[head_s_pipe_id].ex_addr) &&
             !eval_found_flag && next_s_pipe_info[i].active) begin
           next_head_s_pipe_id = i;
@@ -130,35 +128,43 @@ module s_pipe_manager #(
           s_pipe_pc[i] = if_id[i].pc + (sys::addr_width / 8);
           case (rv32i::get_opcode(if_id[i].inst))
             rv32i::opcode_branch: begin
-              for (int j = 0; j < s_pipe_cnt; j++) begin
-                if (j != i && !next_s_pipe_info[j].active && !init_found_flag[i]) begin
-                  next_s_pipe_info[j].mask = next_s_pipe_info[i].mask | (1 << j);
-                  next_s_pipe_info[j].base_pc = if_id[i].pc + rv32i::get_imm_b(if_id[i].inst);
-                  next_s_pipe_info[j].active = true;
-                  s_pipe_pc[j] = next_s_pipe_info[j].base_pc;
-                  s_pipe_en[j] = true;
-                  init_found_flag[i] = true;
+              branch_pred_req[i].base_pc = if_id[i].pc;
+              branch_pred_req[i].targ_pc = if_id[i].pc + rv32i::get_imm_b(if_id[i].inst);
+              branch_pred_req[i].valid = true;
+              if (branch_pred_rsp[i].pred_taken) begin
+                s_pipe_pc[i] = if_id[i].pc + rv32i::get_imm_b(if_id[i].inst);
+              end
+              if (branch_pred_rsp[i].exec_alt) begin
+                for (int j = 0; j < s_pipe_cnt; j++) begin
+                  if (j != i && !next_s_pipe_info[j].active && !init_found_flag) begin
+                    next_s_pipe_info[j].mask = next_s_pipe_info[i].mask | (1 << j);
+                    if (branch_pred_rsp[i].pred_taken) begin
+                      next_s_pipe_info[j].base_pc = if_id[i].pc + (sys::addr_width / 8);
+                    end else begin
+                      next_s_pipe_info[j].base_pc = if_id[i].pc + rv32i::get_imm_b(if_id[i].inst);
+                    end
+                    next_s_pipe_info[j].active = true;
+                    s_pipe_pc[j] = next_s_pipe_info[j].base_pc;
+                    s_pipe_en[j] = true;
+                    init_found_flag = true;
+                  end
                 end
               end
             end
             rv32i::opcode_jalr: begin
               targ_pred_req[i].base_pc = if_id[i].pc;
               targ_pred_req[i].valid = true;
-              for (int j = 0; j < core::targ_pred_cnt; j++) begin
-                if (targ_pred_rsp[i].valid[j]) begin
-                  if (!base_pred_flag[i]) begin
-                    s_pipe_pc[i] = targ_pred_rsp[i].pred_pc[j];
-                    base_pred_flag[i] = true;
-                  end else begin
-                    for (int k = 0; k < s_pipe_cnt; k++) begin
-                      if (k != i && !next_s_pipe_info[k].active && !init_found_flag[i]) begin
-                        next_s_pipe_info[k].mask = next_s_pipe_info[i].mask | (1 << k);
-                        next_s_pipe_info[k].base_pc = targ_pred_rsp[i].pred_pc[j];
-                        next_s_pipe_info[k].active = true;
-                        s_pipe_pc[k] = next_s_pipe_info[k].base_pc;
-                        s_pipe_en[k] = true;
-                        init_found_flag[i] = true;
-                      end
+              if (targ_pred_rsp[i].pred_cnt > 0) begin
+                s_pipe_pc[i] = targ_pred_rsp[i].pred_pc[0];
+                for (int j = 1; j < targ_pred_rsp[i].pred_cnt; j++) begin
+                  for (int k = 0; k < s_pipe_cnt; k++) begin
+                    if (k != i && !next_s_pipe_info[k].active && !init_found_flag) begin
+                      next_s_pipe_info[k].mask = next_s_pipe_info[i].mask | (1 << k);
+                      next_s_pipe_info[k].base_pc = targ_pred_rsp[i].pred_pc[j];
+                      next_s_pipe_info[k].active = true;
+                      s_pipe_pc[k] = next_s_pipe_info[k].base_pc;
+                      s_pipe_en[k] = true;
+                      init_found_flag = true;
                     end
                   end
                 end
