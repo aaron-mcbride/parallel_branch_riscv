@@ -3,14 +3,16 @@
 `ifndef __TARG_PRED_SV__
 `define __TARG_PRED_SV__
 
+// 
+
 module targ_pred #(
   parameter int req_ports = 3,
   parameter int table_size = 32,
   parameter int hist_size = 3
 ) (
   input logic clk,
-  input logic rst,
-  input logic en,
+  input bool rst,
+  input bool en,
   input core::targ_pred_req_t targ_pred_req [req_ports],
   input core::targ_pred_fb_t targ_pred_fb,
   output core::targ_pred_rsp_t targ_pred_rsp [req_ports]
@@ -24,41 +26,42 @@ module targ_pred #(
   hist_index_t targ_hist [table_size][hist_size];
 
   // Feedback/target history update logic
-  table_index_t fb_table_index;
   always @(posedge clk, posedge rst) begin
+    logic i, j;
+    table_index_t cur_table_index;
     if (rst) begin
-      for (int i = 0; i < table_size; i++) begin
-        for (int j = 0; j < hist_size; j++) begin
+      for (i = 0; i < table_size; i++) begin
+        for (j = 0; j < hist_size; j++) begin
           targ_hist[i][j] <= '0;
         end
       end
     end else if (en && targ_pred_fb.valid) begin
-      fb_table_index = targ_pred_fb.base_pc % table_size;
-      for (int i = (hist_size - 1); i > 0; i--) begin
-        targ_hist[fb_table_index][i] <= targ_hist[fb_table_index][i - 1];
+      cur_table_index = targ_pred_fb.base_pc % table_size;
+      for (i = (hist_size - 1); i > 0; i--) begin
+        targ_hist[cur_table_index][i] <= targ_hist[cur_table_index][i - 1];
       end
-      targ_hist[fb_table_index][0] <= targ_pred_fb.targ_pc;
+      targ_hist[cur_table_index][0] <= targ_pred_fb.targ_pc;
     end
   end
 
   // Target prediction request/response logic
-  table_index_t req_table_index;
-  bool rsp_targ_found_flag;
   always @(*) begin
-    req_table_index = '0;
-    for (int i = 0; i < req_ports; i++) begin
+    table_index_t cur_table_index = '0;
+    bool targ_found_flag = '0;
+    logic i, j, k;
+    for (i = 0; i < req_ports; i++) begin
       targ_pred_rsp[i] = core::targ_pred_rsp_rst;
       if (en && targ_pred_req[i].valid) begin
-        req_table_index = targ_pred_req[i].base_pc % table_size;
-        for (int j = 0; j < core::max_targ_pred_cnt; j++) begin
-          rsp_targ_found_flag = false;
-          for (int k = 0; k < j; k++) begin
-            if (targ_pred_rsp[i].pred_pc[k] == targ_hist[req_table_index][j]) begin
-              rsp_targ_found_flag = true;
+        cur_table_index = targ_pred_req[i].base_pc % table_size;
+        for (j = 0; j < hist_size; j++) begin
+          targ_found_flag = false;
+          for (k = 0; k < targ_pred_rsp[i].pred_cnt; k++) begin
+            if (targ_pred_rsp[i].pred_pc[k] == targ_hist[cur_table_index][j]) begin
+              targ_found_flag = true;
             end
           end
-          if (!rsp_targ_found_flag) begin
-            targ_pred_rsp[i].pred_pc[j] = targ_hist[req_table_index][j];
+          if (!targ_found_flag) begin
+            targ_pred_rsp[i].pred_pc[j] = targ_hist[cur_table_index][j];
             targ_pred_rsp[i].pred_cnt++;
           end
         end

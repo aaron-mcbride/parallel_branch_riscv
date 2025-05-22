@@ -192,8 +192,8 @@ package rv32i;
 
 endpackage
 
-// Memory system typedefs and constants
-package mem;
+// System typedefs and constants
+package sys;
 
   // System size constants
   localparam int addr_width = 32;
@@ -379,63 +379,6 @@ package core;
   localparam rf_write_req_t rf_write_req_rst = '0;
   localparam rf_read_rsp_t rf_read_rsp_rst   = '0;
   localparam rf_write_rsp_t rf_write_rsp_rst = '0;
-
-  // Max number of predictions from target predictor
-  localparam int max_targ_pred_cnt = 3;
-
-  // Numeric type to represent index of target prediction
-  typedef logic [($clog2(max_targ_pred_cnt) - 1):0] targ_pred_index_t;
-
-  // Target prediction request arguments
-  typedef struct packed {
-    sys::addr_t base_pc;
-    bool valid;
-  } targ_pred_req_t;
-
-  // Target prediction response arguments
-  typedef struct packed {
-    sys::addr_t pred_pc [max_targ_pred_cnt];
-    targ_pred_index_t pred_cnt;
-  } targ_pred_rsp_t;
-
-  // Target prediction feedback information
-  typedef struct packed {
-    sys::addr_t base_pc;
-    sys::addr_t targ_pc;
-    bool valid;
-  } targ_pred_fb_t;
-
-  // Target predictor request/response/feedback reset constants
-  localparam targ_pred_req_t targ_pred_req_rst = '0;
-  localparam targ_pred_rsp_t targ_pred_rsp_rst = '0;
-  localparam targ_pred_fb_t targ_pred_fb_rst = '0;
-
-  // Branch prediction request arguments
-  typedef struct packed {
-    sys::addr_t base_pc;
-    sys::addr_t targ_pc;
-    bool valid;
-  } branch_pred_req_t;
-
-  // Branch prediction response arguments
-  typedef struct packed {
-    bool pred_taken;
-    bool exec_alt;
-    bool valid;
-  } branch_pred_rsp_t;
-
-  // Branch prediction feedback information
-  typedef struct packed {
-    sys::addr_t base_pc;
-    sys::addr_t targ_pc;
-    bool taken;
-    bool valid;
-  } branch_pred_fb_t;
-
-  // Branch predictor request/response/feedback reset constants
-  localparam branch_pred_req_t branch_pred_req_rst = '0;
-  localparam branch_pred_rsp_t branch_pred_rsp_rst = '0;
-  localparam branch_pred_fb_t branch_pred_fb_rst = '0;  
 
 endpackage
 

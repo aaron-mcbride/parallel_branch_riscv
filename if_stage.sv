@@ -1,10 +1,10 @@
 `include "common.sv"
 
-`ifndef __FE_STAGE_SV__
-`define __FE_STAGE_SV__
+`ifndef __IF_STAGE_SV__
+`define __IF_STAGE_SV__
 
-// Fetch stage module
-module fe_stage (
+// Instruction fetch stage module
+module if_stage (
   input logic clk,
   input bool rst,
   input bool en,
@@ -17,11 +17,11 @@ module fe_stage (
 );
 
   // Ready flag logic
-  assign rdy = next_rdy && inst_read_rsp.done;
+  assign rdy = en && next_rdy && inst_read_rsp.done;
 
   // Instruction read request logic
   assign inst_read_req.addr = pc;
-  assign inst_read_req.mask = '{(rv32i::inst_width/byte_width){1'b1}};
+  assign inst_read_req.mask = '{(rv32i::inst_width / byte_width){1'b1}};
   assign inst_read_req.en = en && !rst;
   
   // Pipeline register update logic
@@ -37,4 +37,4 @@ module fe_stage (
 
 endmodule
 
-`endif // __FE_STAGE_SV__
+`endif // __IF_STAGE_SV__
