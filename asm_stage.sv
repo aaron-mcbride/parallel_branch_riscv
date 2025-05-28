@@ -14,35 +14,29 @@ module asm_stage (
   output bool rdy
 );
 
-  // Ready logic
   assign rdy = en && next_rdy;
 
-  // Writeback value assembly logic
-  rv32i::reg_t next_asm_result;
+  rv32i::reg_t n_asm_result;
   always @(*) begin
-    next_asm_result <= '0;
-    if (mem_asm.valid) begin
-      case (mem_asm.de_inst.opcode)
-        rv32i::opcode_load: begin
-          case (mem_asm.de_inst.funct3)
-            rv32i::funct3_load_lbu, rv32i::funct3_load_lhu: begin
-              next_asm_result = mem_asm.mem_result >> (util::addr_off(mem_asm.ex_addr) * 8);
-            end
-            rv32i::funct3_load_lb, rv32i::funct3_load_lh: begin
-              next_asm_result = mem_asm.mem_result >> (util::addr_off(mem_asm.ex_addr) * 8);
-              next_asm_result = sext(sys::word_width, sys::byte_width, next_asm_result);
-            end
-            rv32i::funct3_load_lw: begin
-              next_asm_result = mem_asm.mem_result;
-            end
-          endcase
-        end
-        rv32i::opcode_auipc, rv32i::opcode_lui, 
-        rv32i::opcode_op, rv32i::opcode_imm_op: begin
-          next_asm_result = mem_asm.ex_result;
-        end
-      endcase
-    end
+    n_asm_result = '0;
+    case (mem_asm.de_inst.opcode)
+      rv32i::opcode_load: begin
+        n_asm_result = mem_asm.mem_result >> 
+            ((mem_asm.ex_addr % sys::word_size) * sys::byte_width);
+        case (mem_asm.de_inst.funct3)
+          rv32i::funct3_load_lb: begin
+            n_asm_result = util::sext(n_asm_result, sys::byte_width);
+          end
+          rv32i::funct3_load_lh: begin
+            n_asm_result = util::sext(n_asm_result, sys::half_width);
+          end
+        endcase
+      end
+      rv32i::opcode_auipc, rv32i::opcode_lui, 
+      rv32i::opcode_jal, rv32i::opcode_jalr: begin
+        n_asm_result = mem_asm.ex_result;
+      end
+    endcase
   end
 
   // Pipeline register update logic

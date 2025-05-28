@@ -5,50 +5,46 @@
 
 // Read stage module
 module rd_stage (
-  input logic clk,
-  input logic rst,
-  input logic en,
-  input logic next_rdy,
-  input core::id_rd_t id_rd,
-  input bool rs1_use_flag,
-  input bool rs2_use_flag,
-  input core::rf_read_rsp_t rs1_rf_read_rsp,
-  input core::rf_read_rsp_t rs2_rf_read_rsp,
-  output core::rf_read_req_t rs1_rf_read_req,
-  output core::rf_read_req_t rs2_rf_read_req,
-  output core::rd_ex_t rd_ex,
-  output logic rdy,
+  input logic clk,                            // Clock signal
+  input logic rst,                            // Reset signal
+  input logic en,                             // Enable signal
+  input logic next_rdy,                       // Next stage ready signal
+  input core::id_rd_t id_rd,                  // Stage input registers
+  input core::rf_read_rsp_t rs1_rf_read_rsp,  // Register file read response for rs1
+  input core::rf_read_rsp_t rs2_rf_read_rsp,  // Register file read response for rs2
+  output core::rf_read_req_t rs1_rf_read_req, // Register file read request for rs1
+  output core::rf_read_req_t rs2_rf_read_req, // Register file read request for rs2
+  output core::rd_ex_t rd_ex,                 // Stage output registers
+  output logic rdy                            // Stage ready signal
 );
 
-  // Ready flag logic
-  assign rdy = en && next_rdy && 
-      (!rs1_rf_read_req.en || rs1_rf_read_rsp.done) &&
-      (!rs2_rf_read_req.en || rs2_rf_read_rsp.done);
+  assign rdy = en && next_rdy;
 
-  // RS1 register file read request logic
   assign rs1_rf_read_req.addr = id_rd.de_inst.rs1;
-  assign rs1_rf_read_req.en   = en && id_rd.valid && 
-      !rs1_use_flag && id_rd.de_inst.has_rs1 && !rst;
-  
-  // RS2 register file read request logic
+  assign rs1_rf_read_req.en   = en && !rst && 
+      id_rd.valid && id_rd.de_inst.has_rs1;
+
   assign rs2_rf_read_req.addr = id_rd.de_inst.rs2;
-  assign rs2_rf_read_req.en   = en && id_rd.valid &&
-      !rs2_use_flag && id_rd.de_inst.has_rs2 && !rst;
-  
-  // Pipeline register update logic
-  always @(posedge clk, posedge rst) begin
+  assign rs2_rf_read_req.en   = en && !rst && 
+      id_rd.valid && id_rd.de_inst.has_rs2;
+
+  core::rd_ex_t n_rd_ex;
+  always @(*) begin
+    n_rd_ex = rd_ex;
     if (rst) begin
-      rd_ex <= core::rd_ex_rst;
+      n_rd_ex = core::rd_ex_rst;
     end else if (next_rdy) begin
-      rd_ex.inst      <= id_rd.inst;
-      rd_ex.pc        <= id_rd.pc;
-      rd_ex.de_inst   <= id_rd.de_inst;
-      rd_ex.rs1_value <= rs1_rf_read_rsp.value;
-      rd_ex.rs2_value <= rs2_rf_read_rsp.value;     
-      rd_ex.valid     <= en && id_rd.valid &&
-          (!rs1_rf_read_req.en || rs1_rf_read_rsp.valid) &&
-          (!rs2_rf_read_req.en || rs2_rf_read_rsp.valid);
+      n_rd_ex.inst      = id_rd.inst;
+      n_rd_ex.pc        = id_rd.pc;
+      n_rd_ex.de_inst   = id_rd.de_inst;
+      n_rd_ex.rs1_value = rs1_rf_read_rsp.value;
+      n_rd_ex.rs2_value = rs2_rf_read_rsp.value;     
+      n_rd_ex.valid     = en && id_rd.valid;
     end
+  end
+
+  always @(posedge clk) begin
+    rd_ex <= n_rd_ex;
   end
 
 endmodule

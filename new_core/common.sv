@@ -26,7 +26,7 @@ package rv32i;
     typedef logic [(funct3_width - 1):0] funct3_t;
     typedef logic [(funct7_width - 1):0] funct7_t;
     typedef logic [(imm_width - 1):0] imm_t;
-    typedef logic [($clog2(reg_cnt) - 1):0] reg_addr_t;
+    typedef logic [($clog2(reg_cnt) - 1):0] reg_num_t;
     typedef logic [(reg_width - 1):0] reg_t;
     typedef logic [(inst_width - 1):0] inst_t;
 
@@ -46,17 +46,17 @@ package rv32i;
     endfunction
 
     // Extract rs1 from instruction
-    function automatic reg_addr_t get_rs1(inst_t inst);
+    function automatic reg_num_t get_rs1_num(inst_t inst);
       return inst[19:15];
     endfunction
 
     // Extract rs2 from instruction
-    function automatic reg_addr_t get_rs2(inst_t inst);
+    function automatic reg_num_t get_rs2_num(inst_t inst);
       return inst[24:20];
     endfunction
 
     // Extract rd from instruction
-    function automatic reg_addr_t get_rd(inst_t inst);
+    function automatic reg_num_t get_rd_num(inst_t inst);
       return inst[11:7];
     endfunction
 
@@ -157,88 +157,87 @@ package rv32i;
     localparam funct7_t funct7_sys_ebreak = 'b0000000;
 
     // Register constants
-    localparam reg_addr_t reg_zero = 'b00000;
-    localparam reg_addr_t reg_ra   = 'b00001;
-    localparam reg_addr_t reg_sp   = 'b00010;
-    localparam reg_addr_t reg_gp   = 'b00011;
-    localparam reg_addr_t reg_tp   = 'b00100;
-    localparam reg_addr_t reg_t0   = 'b00101;
-    localparam reg_addr_t reg_t1   = 'b00110;
-    localparam reg_addr_t reg_t2   = 'b00111;
-    localparam reg_addr_t reg_s0   = 'b01000;
-    localparam reg_addr_t reg_s1   = 'b01001;
-    localparam reg_addr_t reg_a0   = 'b01010;
-    localparam reg_addr_t reg_a1   = 'b01011;
-    localparam reg_addr_t reg_a2   = 'b01100;
-    localparam reg_addr_t reg_a3   = 'b01101;
-    localparam reg_addr_t reg_a4   = 'b01110;
-    localparam reg_addr_t reg_a5   = 'b01111;
-    localparam reg_addr_t reg_a6   = 'b10000;
-    localparam reg_addr_t reg_a7   = 'b10001;
-    localparam reg_addr_t reg_s2   = 'b10010;
-    localparam reg_addr_t reg_s3   = 'b10011;
-    localparam reg_addr_t reg_s4   = 'b10100;
-    localparam reg_addr_t reg_s5   = 'b10101;
-    localparam reg_addr_t reg_s6   = 'b10110;
-    localparam reg_addr_t reg_s7   = 'b10111;
-    localparam reg_addr_t reg_s8   = 'b11000;
-    localparam reg_addr_t reg_s9   = 'b11001;
-    localparam reg_addr_t reg_s10  = 'b11010;
-    localparam reg_addr_t reg_s11  = 'b11011;
-    localparam reg_addr_t reg_t3   = 'b11100;
-    localparam reg_addr_t reg_t4   = 'b11101;
-    localparam reg_addr_t reg_t5   = 'b11110;
-    localparam reg_addr_t reg_t6   = 'b11111;
+    localparam reg_num_t reg_zero = 'b00000;
+    localparam reg_num_t reg_ra   = 'b00001;
+    localparam reg_num_t reg_sp   = 'b00010;
+    localparam reg_num_t reg_gp   = 'b00011;
+    localparam reg_num_t reg_tp   = 'b00100;
+    localparam reg_num_t reg_t0   = 'b00101;
+    localparam reg_num_t reg_t1   = 'b00110;
+    localparam reg_num_t reg_t2   = 'b00111;
+    localparam reg_num_t reg_s0   = 'b01000;
+    localparam reg_num_t reg_s1   = 'b01001;
+    localparam reg_num_t reg_a0   = 'b01010;
+    localparam reg_num_t reg_a1   = 'b01011;
+    localparam reg_num_t reg_a2   = 'b01100;
+    localparam reg_num_t reg_a3   = 'b01101;
+    localparam reg_num_t reg_a4   = 'b01110;
+    localparam reg_num_t reg_a5   = 'b01111;
+    localparam reg_num_t reg_a6   = 'b10000;
+    localparam reg_num_t reg_a7   = 'b10001;
+    localparam reg_num_t reg_s2   = 'b10010;
+    localparam reg_num_t reg_s3   = 'b10011;
+    localparam reg_num_t reg_s4   = 'b10100;
+    localparam reg_num_t reg_s5   = 'b10101;
+    localparam reg_num_t reg_s6   = 'b10110;
+    localparam reg_num_t reg_s7   = 'b10111;
+    localparam reg_num_t reg_s8   = 'b11000;
+    localparam reg_num_t reg_s9   = 'b11001;
+    localparam reg_num_t reg_s10  = 'b11010;
+    localparam reg_num_t reg_s11  = 'b11011;
+    localparam reg_num_t reg_t3   = 'b11100;
+    localparam reg_num_t reg_t4   = 'b11101;
+    localparam reg_num_t reg_t5   = 'b11110;
+    localparam reg_num_t reg_t6   = 'b11111;
 
 endpackage
 
 // System typedefs and constants
 package sys;
 
-  // System size constants
+  // System width constants
   localparam int addr_width = 32;
   localparam int word_width = 32;
   localparam int half_width = 16;
   localparam int byte_width = 8;
 
+  // System size constants
+  localparam int inst_size = (rv32i::inst_width / byte_width);
+  localparam int addr_size = (addr_width / byte_width);
+  localparam int word_size = (word_width / byte_width);
+  localparam int half_size = (half_width / byte_width);
+
   // System types
-  typedef logic [word_width-1:0] word_t;
   typedef logic [addr_width-1:0] addr_t;
+  typedef logic [word_width-1:0] word_t;
+  typedef logic [half_width-1:0] half_t;
+  typedef logic [byte_width-1:0] byte_t;
 
-  // Memory request mask type
-  typedef logic [(word_width/byte_width)-1:0] mem_req_mask_t;
-
-  // Memory request mask constants
-  localparam mem_req_mask_t mem_req_byte_mask = 'b0001;
-  localparam mem_req_mask_t mem_req_half_mask = 'b0011;
-  localparam mem_req_mask_t mem_req_word_mask = 'b1111;
+  // Memory request size type
+  typedef logic [($clog2(word_size) - 1):0] mem_req_size_t;
 
   // Memory read arguments
   typedef struct packed {
     addr_t addr;
-    mem_req_mask_t mask;
-    bool en;
+    mem_req_size_t size;
   } mem_read_req_t;
 
   // Memory write request arguments
   typedef struct packed {
     addr_t addr;
+    mem_req_size_t size;
     word_t data;
-    mem_req_mask_t mask;
     bool en;
   } mem_write_req_t;
 
   // Memory read response arguments
   typedef struct packed {
-    addr_t addr;
     word_t data;
-    bool valid;
     bool done;
   } mem_read_rsp_t;
 
   // Memory write response arguments
   typedef struct packed {
-    bool valid;
     bool done;
   } mem_write_rsp_t;
 
@@ -253,165 +252,161 @@ endpackage
 // CPU core implementation typedefs and constants
 package core;
 
-  // Instruction fields
+  // Instruction fields and information
   typedef struct packed {
     rv32i::opcode_t opcode;
-    rv32i::funct7_t funct7;
     rv32i::funct3_t funct3;
-    rv32i::reg_addr_t rs1;
-    rv32i::reg_addr_t rs2;
-    rv32i::reg_addr_t rd;
+    rv32i::funct7_t funct7;
+    rv32i::reg_num_t rs1_num;
+    rv32i::reg_num_t rs2_num;
+    rv32i::reg_num_t rd_num;
     rv32i::imm_t imm;
     bool has_rs1;
     bool has_rs2;
     bool has_rd;
   } de_inst_t;
 
-  // Fetch/decode stage pipeline registers
+  // Fetch/decode stage registers
   typedef struct packed {
+    sys::addr_t pc;
     rv32i::inst_t inst;
-    rv32i::addr_t pc;
     bool valid;
   } if_id_t;
 
-  // Decode/read stage pipeline registers
+  // Decode stage registers
   typedef struct packed {
+    sys::addr_t pc;
     rv32i::inst_t inst;
-    rv32i::addr_t pc;
-    de_inst_t de_inst;
-    bool valid;
-  } id_rd_t;
-
-  // Read/execute stage pipeline registers
-  typedef struct packed {
-    rv32i::inst_t inst;
-    rv32i::addr_t pc;
     de_inst_t de_inst;
     rv32i::reg_t rs1_value;
     rv32i::reg_t rs2_value;
     bool valid;
-  } rd_ex_t;
+  } id_ex_t;
 
-  // Execute/memory stage pipeline registers
+  // Execute stage registers
   typedef struct packed {
+    sys::addr_t pc;
     rv32i::inst_t inst;
-    rv32i::addr_t pc;
     de_inst_t de_inst;
     rv32i::reg_t rs1_value;
     rv32i::reg_t rs2_value;
     rv32i::reg_t ex_result;
-    sys::addr_t ex_addr;
-    sys::mem_req_mask_t ex_mask;
-    bool rd_rdy;
+    rv32i::addr_t ex_addr;
     bool valid;
-  } ex_mem;
+  } ex_mem_t;
 
-  // Memory/assemble stage pipeline registers
+  // Memory stage registers
   typedef struct packed {
-    rv32i::inst_t inst;
     rv32i::addr_t pc;
+    rv32i::inst_t inst;
     de_inst_t de_inst;
     rv32i::reg_t rs1_value;
     rv32i::reg_t rs2_value;
     rv32i::reg_t ex_result;
-    sys::addr_t ex_addr;
-    sys::word_t mem_result;
-    bool rd_rdy;
+    rv32i::addr_t ex_addr;
+    rv32i::reg_t mem_result;
     bool valid;
-  } mem_asm_t;
-
-  // Assemble/writeback stage pipeline registers
-  typedef struct packed {
-    rv32i::inst_t inst;
-    rv32i::addr_t pc;
-    de_inst_t de_inst;
-    rv32i::reg_t rs1_value;
-    rv32i::reg_t rs2_value;
-    rv32i::reg_t asm_result;
-    bool valid;
-  } asm_wb_t;
+  } mem_wb_t;
 
   // Pipeline register reset constants
-  localparam de_inst_t de_inst_rst = '0;
-  localparam if_id_t if_id_rst     = '0;
-  localparam id_rd_t id_rd_rst     = '0;
-  localparam rd_ex_t rd_ex_rst     = '0;
-  localparam ex_mem_t ex_mem_rst   = '0;
-  localparam mem_asm_t mem_asm_rst = '0;
-  localparam asm_wb_t asm_wb_rst   = '0;
+  localparam if_id_t if_id_rst = '0;
+  localparam id_ex_t id_ex_rst = '0;
+  localparam ex_mem_t ex_mem_rst = '0;
+  localparam mem_wb_t mem_wb_rst = '0;
 
-  // Register bypassing info
+  // Register forwarding arguments
   typedef struct packed {
-    rv32i::reg_t byp_rs1_value;
-    rv32i::reg_t byp_rs2_value;
-    bool byp_rs1_valid;
-    bool byp_rs2_valid;
-  } reg_byp_t;
+    rv32i::reg_t rs1_value;
+    rv32i::reg_t rs2_value;
+  } reg_fwd_t;
 
   // Register file read request arguments
   typedef struct packed {
-    rv32i::reg_addr_t reg_addr;
-    bool en;
+    rv32i::reg_num_t rs1_num;
+    rv32i::reg_num_t rs2_num;
   } rf_read_req_t;
 
   // Register file write request arguments
   typedef struct packed {
-    rv32i::reg_addr_t reg_addr;
-    rv32i::reg_t value;
+    rv32i::reg_num_t rd_num;
+    rv32i::reg_t rd_value;
     bool en;
   } rf_write_req_t;
 
-  // Register file read response arguments
+  // Register file read response structure
   typedef struct packed {
-    rv32i::reg_t value;
-    bool valid;
+    rv32i::reg_t rs1_value;
+    rv32i::reg_t rs2_value;
   } rf_read_rsp_t;
 
-  // Register file write response arguments
-  typedef struct packed {
-    bool valid;
-    bool done;
-  } rf_write_rsp_t;
-
-  // Regfile/forwarding unit reset constants
+  // Register struct reset constants
   localparam reg_fwd_t reg_fwd_rst           = '0;
   localparam rf_read_req_t rf_read_req_rst   = '0;
   localparam rf_write_req_t rf_write_req_rst = '0;
   localparam rf_read_rsp_t rf_read_rsp_rst   = '0;
-  localparam rf_write_rsp_t rf_write_rsp_rst = '0;
+
+  // Pipeline parallel evaluation width
+  localparam int peval_width = 3;
+
+  // Numeric type for parallel evaluation index
+  typedef logic [($clog2(peval_width) - 1):0] peval_idx_t;
+
+  // Numeric types for stage indicies
+  typedef logic [($clog2(peval_width ** 2) - 1):0] if_idx_t;
+  typedef logic [($clog2(peval_width) - 1):0] id_idx_t;
+
+  // Target prediction request arguments
+  typedef struct packed {
+    sys::addr_t base_pc;
+  } targ_pred_req_t;
+
+  // Target prediction response arguments
+  typedef struct packed {
+    sys::addr_t targ_list [peval_width];
+    peval_idx_t targ_cnt;
+  } targ_pred_rsp_t;
+
+  // Target prediction feedback arguments
+  typedef struct packed {
+    sys::addr_t base_pc;
+    sys::addr_t targ_pc;
+    bool valid;
+  } targ_pred_fb_t;
+
+  // Branch prediction request arguments
+  typedef struct packed {
+    sys::addr_t base_pc;
+  } branch_pred_req_t;
+
+  // Branch prediction response arguments
+  typedef struct packed {
+    bool branch_taken;
+    bool eval_alt;
+  } branch_pred_rsp_t;
+
+  // Branch prediction feedback arguments
+  typedef struct packed {
+    sys::addr_t base_pc;
+    sys::addr_t targ_pc;
+    bool branch_taken;
+    bool valid;
+  } branch_pred_fb_t;
+
+  // Branch/target prediction reset constants
+  localparam targ_pred_req_t targ_pred_req_rst     = '0;
+  localparam targ_pred_rsp_t targ_pred_rsp_rst     = '0;
+  localparam targ_pred_fb_t targ_pred_fb_rst       = '0;
+  localparam branch_pred_req_t branch_pred_req_rst = '0;
+  localparam branch_pred_rsp_t branch_pred_rsp_rst = '0;
+  localparam branch_pred_fb_t branch_pred_fb_rst   = '0;
 
 endpackage
 
 package util;
 
-  // Creates a bit mask with the specified length and position.
-  function automatic sys::word_t get_mask(input int len, input int pos);
-    return {len{1'b1}} << pos;
-  endfunction
-
-  // Moves a value into the position of a field at the specified position.
-  function automatic sys::word_t v2f(input sys::word_t value, input int len, input int pos);
-    return (value & get_mask(len, pos)) << pos;
-  endfunction
-
-  // Extracts a value from a field at the specified position.
-  function automatic sys::word_t f2v(input sys::word_t value, input int len, input int pos);
-    return (value >> pos) & get_mask(len, pos);
-  endfunction
-
-  // Gets the offset of a memory address in bytes (from word aligned address).
-  function automatic sys::addr_t addr_off(input sys::addr_t addr);
-    return addr[($clog2(sys::word_width/sys::byte_width) - 1):0];
-  endfunction
-
-  // Aligns a memory address to the nearest word boundary.
-  function automatic sys::addr_t align_addr(input sys::addr_t addr);
-    return addr[(sys::addr_width - 1):$clog2(sys::word_width/sys::byte_width)];
-  endfunction
-
-  // Sign extends a value (x) from src_len to dst_len (given in bits).
-  function automatic sys::word_t sext(input int dst_len, input int src_len, input sys::word_t value);
-    return {{(dst_len - src_len){value[src_len - 1]}}, value[(src_len - 1):0]};
+  // Sign extends a value of the specified width to full word width
+  function automatic sys::word_t sext(input sys::word_t value, input int width);
+    return {{(sys::word_width - width){value[width - 1]}}, value[(width - 1):0]};
   endfunction
 
 endpackage
