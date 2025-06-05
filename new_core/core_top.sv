@@ -5,6 +5,7 @@
 `include "hzd_unit.sv"
 `include "id_stage.sv"
 `include "if_stage.sv"
+`include "inst_cache.sv"
 `include "mem_stage.sv"
 `include "pipe_manager.sv"
 `include "regfile.sv"
@@ -15,26 +16,25 @@
 `ifndef __CORE_TOP_SV__
 `define __CORE_TOP_SV__
 
-module core_top (
-  input logic clk,
-  input bool rst,
-  input bool en
+`timescale 1ns / 1ps
+
+module core_top #(
+  parameter int sys_mem_size                = 100000;       // Size of the system memory in bytes 
+  parameter string sys_mem_mif              = "null";       // Memory initialization file path
+  parameter int inst_cache_size             = 64;           // Number of lines in the instruction cache
+  parameter int start_pc                    = 32'h00000000; // Initial program counter value
+  parameter bool core_dbg_enable_output     = true;         // Enable core debug console output
+  parameter int core_dbg_stop_freq          = 10;           // Frequency of debug console output
+  parameter int targ_pred_table_size        = 32;           // Size of the target predictor table
+  parameter int targ_pred_prune_freq        = 4;            // Frequency of pruning the target predictor table
+  parameter int branch_pred_table_cnt       = 2;            // Number of branch predictor tables
+  parameter int branch_pred_table_size      = 32;           // Size of each branch predictor table
+  parameter int branch_pred_eval_alt_thresh = 4;            // Threshold for alternative evaluation in branch prediction
+) (
+  input logic clk, // Global clock signal
+  input bool rst,  // Global reset signal
+  input bool en    // Global enable signal
 );
-
-  localparam int sys_mem_size   = 1024;
-  localparam string sys_mem_mif = "null";
-
-  localparam int start_pc = 32'h00000000;
-
-  localparam bool core_dbg_enable_output = true;
-  localparam int core_dbg_stop_freq      = 10;
-
-  localparam int targ_pred_table_size = 32;
-  localparam int targ_pred_prune_freq = 4;
-
-  localparam int branch_pred_table_cnt       = 2;
-  localparam int branch_pred_table_size      = 32;
-  localparam int branch_pred_eval_alt_thresh = 4;
 
   core::branch_pred_req_t branch_pred_req [core::peval_width];
   core::branch_pred_rsp_t branch_pred_rsp [core::peval_width];
@@ -87,37 +87,51 @@ module core_top (
   core::rf_write_req_t rf_write_req;
   core::rf_write_rsp_t rf_write_rsp;
 
-  core::mem_read_req_t inst_read_req [core::peval_width ** 2];
-  core::mem_read_rsp_t inst_read_rsp [core::peval_width ** 2];
-  
-  core::mem_read_req_t data_read_req;
-  core::mem_read_rsp_t data_read_rsp;
+  core::inst_fetch_req_t inst_fetch_req [core::peval_width ** 2];
+  core::inst_fetch_rsp_t inst_fetch_rsp [core::peval_width ** 2];
 
-  core::mem_write_req_t data_write_req;
-  core::mem_write_rsp_t data_write_rsp;
+  sys::mem_read_block_req_t mem_read_block_req [core::peval_width];
+  sys::mem_read_block_rsp_t mem_read_block_rsp [core::peval_width];
 
-  core::mem_read_req_t concat_read_req;
-  core::mem_read_rsp_t concat_read_rsp;
+  sys::mem_read_req_t mem_read_req;
+  sys::mem_read_rsp_t mem_read_rsp;
 
-  core::mem_write_req_t concat_write_req;
-  core::mem_write_rsp_t concat_write_rsp; 
+  sys::mem_write_req_t mem_write_req;
+  sys::mem_write_rsp_t mem_write_rsp;
 
   core::reg_fwd_t ex_reg_fwd;
   core::reg_fwd_t mem_reg_fwd;
 
   sys_mem #(
     .size(sys_mem_size),
-    .read_port_cnt((core::peval_width ** 2) + 1),
+    .read_port_cnt(1),
+    .block_read_port_cnt(core::peval_width),
     .write_port_cnt(1),
     .mif(sys_mem_mif)
   ) sys_mem_inst (
     .clk(clk),
     .rst(rst),
     .en(en),
-    .read_req(concat_read_req),
-    .write_req(concat_write_req),
-    .read_rsp('{inst_read_rsp, data_read_rsp}),
-    .write_rsp(data_write_rsp)
+    .read_req(mem_read_req),
+    .read_block_req(mem_read_block_req),
+    .write_req(mem_write_req),
+    .read_rsp(mem_read_rsp),
+    .read_block_rsp(mem_read_block_rsp),
+    .write_rsp(mem_write_rsp)
+  );
+
+  inst_cache #(
+    .fetch_port_cnt(core::peval_width ** 2),
+    .mem_port_cnt(core::peval_width),
+    .cache_size(inst_cache_size)
+  ) (
+    .clk(clk),
+    .rst(rst),
+    .en(en),
+    .fetch_req(inst_fetch_req),
+    .mem_rsp(mem_read_block_rsp),
+    .fetch_rsp(inst_fetch_rsp),
+    .mem_req(mem_read_block_req)
   );
 
   regfile #(
@@ -198,8 +212,8 @@ module core_top (
         .en(if_en[i]),
         .next_rdy(id_rdy[i / core::peval_width]),
         .pc(if_pc[i]),
-        .inst_read_rsp(inst_read_rsp[i]),
-        .inst_read_req(inst_read_req[i]),
+        .inst_fetch_req(inst_fetch_req[i]),
+        .inst_fetch_rsp(inst_fetch_rsp[i]),
         .if_id(if_id_en[i]),
         .rdy(if_rdy[i])
       );
@@ -241,10 +255,10 @@ module core_top (
     .next_rdy(wb_rdy),
     .ex_mem(ex_mem),
     .reg_fwd(mem_reg_fwd),
-    .mem_read_rsp(data_read_rsp),
-    .mem_write_rsp(data_write_rsp),
-    .mem_read_req(data_read_req),
-    .mem_write_req(data_write_req),
+    .mem_read_rsp(mem_read_rsp),
+    .mem_write_rsp(mem_write_rsp),
+    .mem_read_req(mem_read_req),
+    .mem_write_req(mem_write_req),
     .mem_wb(mem_wb),
     .rdy(mem_rdy)
   );
@@ -297,5 +311,34 @@ module core_top (
   assign wb_rst = rst;
 
 endmodule
+
+module top;
+
+  logic clk;
+
+  always begin
+    clk = 0;
+    forever #5 clk = ~clk;
+  end
+
+  core_top #(
+    .sys_mem_size(100000),
+    .sys_mem_mif("null"),
+    .inst_cache_size(64),
+    .start_pc(32'h00000000),
+    .core_dbg_enable_output(true),
+    .core_dbg_stop_freq(10),
+    .targ_pred_table_size(32),
+    .targ_pred_prune_freq(4),
+    .branch_pred_table_cnt(2),
+    .branch_pred_table_size(32),
+    .branch_pred_eval_alt_thresh(4)
+  ) core_inst (
+    .clk(clk),
+    .rst(1'b0),
+    .en(1'b1)
+  );
+
+  endmodule
 
 `endif // __CORE_TOP_SV__

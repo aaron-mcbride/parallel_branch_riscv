@@ -220,6 +220,7 @@ package sys;
   typedef struct packed {
     addr_t addr;
     mem_req_size_t size;
+    bool en;
   } mem_read_req_t;
 
   // Memory write request arguments
@@ -246,6 +247,25 @@ package sys;
   localparam mem_write_req_t mem_write_req_rst = '0;
   localparam mem_read_rsp_t mem_read_rsp_rst   = '0;
   localparam mem_write_rsp_t mem_write_rsp_rst = '0;
+
+  // Size of memory blocks loaded by cache
+  parameter int mem_block_size = 16;
+
+  // Memory read block request arguments
+  typedef struct packed {
+    sys::addr_t addr;
+    bool en;
+  } mem_read_block_req_t;
+
+  // Memory read block response arguments
+  typedef struct packed {
+    sys::byte_t data [mem_block_size];
+    bool done;
+  } mem_read_block_rsp_t;
+
+  // Memory read block request/response reset constants
+  parameter mem_read_block_req_t mem_read_block_req_rst = '0;
+  parameter mem_read_block_rsp_t mem_read_block_rsp_rst = '0;
 
 endpackage
 
@@ -399,6 +419,21 @@ package core;
   localparam branch_pred_req_t branch_pred_req_rst = '0;
   localparam branch_pred_rsp_t branch_pred_rsp_rst = '0;
   localparam branch_pred_fb_t branch_pred_fb_rst   = '0;
+
+  // Instruction fetch request arguments
+  typedef struct packed {
+    sys::addr_t pc;
+    bool valid;
+  } inst_fetch_req_t;
+
+  // Instruction fetch response arguments
+  typedef struct packed {
+    rv32i::inst_t inst;
+    bool done;
+  } inst_fetch_rsp_t;
+
+  parameter inst_fetch_req_t inst_fetch_req_rst = '0;
+  parameter inst_fetch_rsp_t inst_fetch_rsp_rst = '0;
 
 endpackage
 

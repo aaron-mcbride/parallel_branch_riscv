@@ -32,7 +32,7 @@ module asm_stage (
           end
         endcase
       end
-      rv32i::opcode_auipc, rv32i::opcode_lui, 
+      rv32i::opcode_auipc, rv32i::opcode_lui,
       rv32i::opcode_jal, rv32i::opcode_jalr: begin
         n_asm_result = mem_asm.ex_result;
       end
