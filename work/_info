@@ -1,0 +1,632 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dC:/Users/aaron/files/sarp/parallel_branch_riscv
+Xbool_type
+Z1 DXx6 sv_std 3 std 0 22 AD7iAPLo6nTIKk<N0eo=D3
+Z2 !s110 1749180946
+!i10b 1
+!s100 j[Yzn]NWHBifNV<mnDJ_d1
+I8niK;a2jRozN`[=9Q[od]2
+V8niK;a2jRozN`[=9Q[od]2
+S1
+R0
+Z3 w1749180898
+Z4 8test\..\src\common.sv
+Z5 Ftest\..\src\common.sv
+L0 5
+Z6 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z7 !s108 1749180946.000000
+Z8 !s107 test\..\src\wb_stage.sv|test\..\src\targ_pred.sv|test\..\src\sys_mem.sv|test\..\src\regfile.sv|test\..\src\pipe_manager.sv|test\..\src\mem_stage.sv|test\..\src\inst_cache.sv|test\..\src\if_stage.sv|test\..\src\id_stage.sv|test\..\src\hzd_unit.sv|test\..\src\ex_stage.sv|test\..\src\branch_pred.sv|test\..\src\core_top.sv|test\..\src\common.sv|test\core_dbg.sv|test/core_tb.sv|
+Z9 !s90 -##implicit##push_minusfile_path##|C:/Users/aaron/files/sarp/parallel_branch_riscv/vlog.opt|-##implicit##pop_minusfile_path##|-reportprogress|300|test/core_tb.sv|
+!i113 1
+Z10 tSvlog 1 CvgOpt 0
+vbranch_pred
+R1
+Z11 DXx4 work 9 bool_type 0 22 8niK;a2jRozN`[=9Q[od]2
+Z12 DXx4 work 15 core_tb_sv_unit 0 22 KNoRBOAaFYLW0aalej2l[2
+Z13 DXx4 work 5 rv32i 0 22 G]6N@ZRn<]dEIl22QPCJ@3
+Z14 DXx4 work 3 sys 0 22 fRm=EiGNKb7BRT11Xd6H@0
+Z15 DXx4 work 4 core 0 22 iD9@CL]5G?7oEf?KC6FUj0
+Z16 VDg1SIo80bB@j0V0VzS_@n1
+r1
+!s85 0
+31
+!i10b 1
+!s100 2Bb[JWX9`KfWmen1GUAzT3
+IzVm=YDP41N5F@Tg<SL9HR0
+Z17 !s105 core_tb_sv_unit
+S1
+R0
+w1749180903
+8test\..\src\branch_pred.sv
+Z18 Ftest\..\src\branch_pred.sv
+L0 8
+R6
+R7
+R8
+R9
+!i113 1
+R10
+Xcore
+R1
+R11
+R13
+R14
+R2
+!i10b 1
+!s100 Eh6U<V>l<KbCAC_jzD?^W0
+IiD9@CL]5G?7oEf?KC6FUj0
+ViD9@CL]5G?7oEf?KC6FUj0
+S1
+R0
+R3
+R4
+R5
+L0 279
+R6
+r1
+!s85 0
+31
+R7
+R8
+R9
+!i113 1
+R10
+vcore_dbg
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 E]h`O;lP];MDm;9oe=d5C3
+I6^Y0PO@a5QFA]]OW<6;Fb0
+R17
+S1
+R0
+w1749178187
+8test\core_dbg.sv
+Z19 Ftest\core_dbg.sv
+L0 8
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vcore_tb
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 <D_Ra@V[@J[oc4fKF2;^B3
+Ihc0d;Y<Qg3?[f;LgCACLm0
+R17
+S1
+R0
+w1749178581
+Z20 8test/core_tb.sv
+Z21 Ftest/core_tb.sv
+L0 58
+R6
+R7
+R8
+R9
+!i113 1
+R10
+Xcore_tb_sv_unit
+R1
+R11
+VKNoRBOAaFYLW0aalej2l[2
+r1
+!s85 0
+31
+!i10b 1
+!s100 KKUQ=QmC8lFIndiI0VJUX0
+IKNoRBOAaFYLW0aalej2l[2
+!i103 1
+S1
+R0
+Z22 w1749180916
+R20
+R21
+R19
+R5
+Z23 Ftest\..\src\core_top.sv
+R18
+Z24 Ftest\..\src\ex_stage.sv
+Z25 Ftest\..\src\hzd_unit.sv
+Z26 Ftest\..\src\id_stage.sv
+Z27 Ftest\..\src\if_stage.sv
+Z28 Ftest\..\src\inst_cache.sv
+Z29 Ftest\..\src\mem_stage.sv
+Z30 Ftest\..\src\pipe_manager.sv
+Z31 Ftest\..\src\regfile.sv
+Z32 Ftest\..\src\sys_mem.sv
+Z33 Ftest\..\src\targ_pred.sv
+Z34 Ftest\..\src\wb_stage.sv
+L0 6
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vcore_top
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 46LDXL:m2]NlHV6=Oh>^M3
+IQ?kUmzCoJiBGa:;6cJ7FS3
+R17
+S1
+R0
+w1749178645
+8test\..\src\core_top.sv
+R23
+L0 22
+R6
+R7
+R8
+R9
+!i113 1
+R10
+Xcore_top_sv_unit
+R1
+DXx4 work 9 bool_type 0 22 TEe1B1ClX1T<S4:<OA^ZZ2
+VLaNEk7bB1M1EV5:zo@4Fn3
+r1
+!s85 0
+31
+!i10b 1
+!s100 _Q>I8n2X;iM6SHk>Gb?:D3
+ILaNEk7bB1M1EV5:zo@4Fn3
+!i103 1
+S1
+R0
+R22
+Z35 8src/core_top.sv
+Z36 Fsrc/core_top.sv
+Fsrc\branch_pred.sv
+Fsrc\common.sv
+Fsrc\ex_stage.sv
+Fsrc\hzd_unit.sv
+Fsrc\id_stage.sv
+Fsrc\if_stage.sv
+Fsrc\inst_cache.sv
+Fsrc\mem_stage.sv
+Fsrc\pipe_manager.sv
+Fsrc\regfile.sv
+Fsrc\sys_mem.sv
+Fsrc\targ_pred.sv
+Fsrc\wb_stage.sv
+L0 6
+R6
+!s108 1749180935.000000
+!s107 src\wb_stage.sv|src\targ_pred.sv|src\sys_mem.sv|src\regfile.sv|src\pipe_manager.sv|src\mem_stage.sv|src\inst_cache.sv|src\if_stage.sv|src\id_stage.sv|src\hzd_unit.sv|src\ex_stage.sv|src\common.sv|src\branch_pred.sv|src/core_top.sv|
+Z37 !s90 -##implicit##push_minusfile_path##|C:/Users/aaron/files/sarp/parallel_branch_riscv/vlog.opt|-##implicit##pop_minusfile_path##|-reportprogress|300|src/core_top.sv|
+!i113 1
+R10
+vex_stage
+R1
+R11
+R12
+R13
+R14
+R15
+Z38 DXx4 work 4 util 0 22 zTAGhN5@aN@LZ`S`[iQl?3
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 VFCELbHP_98j@IJT_73fD2
+Ib?8R8dTEVN?8c7d2j@UQL3
+R17
+S1
+R0
+w1749177986
+8test\..\src\ex_stage.sv
+R24
+L0 9
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vhzd_unit
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 =<_J[7?>Zg0MUa6YF38I_3
+IZ:gNbeS^@a470:MPfcbF42
+R17
+S1
+R0
+w1749165781
+8test\..\src\hzd_unit.sv
+R25
+L0 8
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vid_stage
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 IFMlnDeYcD90f@L][f0gh1
+IPK<GoXd^N[WU7678THMAa3
+R17
+S1
+R0
+w1749179493
+8test\..\src\id_stage.sv
+R26
+L0 9
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vif_stage
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 mb2JVmj8Umf7bFDXmH8`b3
+I^N7BV1EQmd<O=hjbMUkAF0
+R17
+S1
+R0
+w1749180475
+8test\..\src\if_stage.sv
+R27
+L0 9
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vinst_cache
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 I5I3fUF`EUGdSOk3_gmh^3
+I0>bzi=fV2<on@oYUcj@]i1
+R17
+S1
+R0
+w1749180880
+8test\..\src\inst_cache.sv
+R28
+L0 8
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vmem_stage
+R1
+R11
+R12
+R13
+R14
+R15
+R38
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 <TFd<McD4@E7UfE6Ef`C?1
+I1=M<E0MPVmFIG29bV_b5b3
+R17
+S1
+R0
+w1749166822
+8test\..\src\mem_stage.sv
+R29
+L0 9
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vpipe_manager
+R1
+R11
+R12
+R13
+R14
+R15
+R38
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 =H7:^S8G7zkG8h]djJe>Q1
+I@ijP@0BYO9NmJ9TXB6;cY0
+R17
+S1
+R0
+w1749180581
+8test\..\src\pipe_manager.sv
+R30
+L0 8
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vregfile
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 7zGC=7]oR8=kUBUnh1XWE0
+IzO^7gH;D3j8l31=FmhVdU3
+R17
+S1
+R0
+w1749165804
+8test\..\src\regfile.sv
+R31
+L0 8
+R6
+R7
+R8
+R9
+!i113 1
+R10
+Xrv32i
+R1
+R2
+!i10b 1
+!s100 ;d`BF9H:GM[e>[kMco7?30
+IG]6N@ZRn<]dEIl22QPCJ@3
+VG]6N@ZRn<]dEIl22QPCJ@3
+S1
+R0
+R3
+R4
+R5
+L0 17
+R6
+r1
+!s85 0
+31
+R7
+R8
+R9
+!i113 1
+R10
+Xsys
+R1
+R11
+R13
+R2
+!i10b 1
+!s100 6TQdXzQ9k=;Gk4YgoSWEN3
+IfRm=EiGNKb7BRT11Xd6H@0
+VfRm=EiGNKb7BRT11Xd6H@0
+S1
+R0
+R3
+R4
+R5
+L0 200
+R6
+r1
+!s85 0
+31
+R7
+R8
+R9
+!i113 1
+R10
+vsys_mem
+R1
+R11
+R12
+R13
+R14
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 ZEHMX[YUVNKIjW6mPe`YC3
+I1lOSkRQ31j9oPbZIz?VaO2
+R17
+S1
+R0
+w1749180595
+8test\..\src\sys_mem.sv
+R32
+L0 8
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vtarg_pred
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 [2F;WajH?IVJZT;_5O^ff0
+IU5FD0]NOE[OOLQKimQVCi1
+R17
+S1
+R0
+R22
+8test\..\src\targ_pred.sv
+R33
+L0 8
+R6
+R7
+R8
+R9
+!i113 1
+R10
+vtop
+R1
+!s110 1749166856
+!i10b 1
+!s100 ;E6bZ;`?FB22Y=U?DG9XU3
+I0`Z>C5gHZ5zDNT2CPcPB_3
+R16
+!s105 core_top_sv_unit
+S1
+R0
+w1749165772
+R35
+R36
+L0 316
+R6
+r1
+!s85 0
+31
+!s108 1749166856.000000
+!s107 src\wb_stage.sv|src\targ_pred.sv|src\sys_mem.sv|src\regfile.sv|src\pipe_manager.sv|src\mem_stage.sv|src\inst_cache.sv|src\if_stage.sv|src\id_stage.sv|src\hzd_unit.sv|src\ex_stage.sv|src\core_dbg.sv|src\common.sv|src\branch_pred.sv|src/core_top.sv|
+R37
+!i113 1
+R10
+Xutil
+R1
+R11
+R13
+R14
+R2
+!i10b 1
+!s100 Io@6F?ia4dKUgkX1TlN?92
+IzTAGhN5@aN@LZ`S`[iQl?3
+VzTAGhN5@aN@LZ`S`[iQl?3
+S1
+R0
+R3
+R4
+R5
+L0 450
+R6
+r1
+!s85 0
+31
+R7
+R8
+R9
+!i113 1
+R10
+vwb_stage
+R1
+R11
+R12
+R13
+R14
+R15
+R16
+r1
+!s85 0
+31
+!i10b 1
+!s100 dze2za13:CWYl>aQ<Af=12
+I=CdCCFBH_S_P1oY?4ZnGi0
+R17
+S1
+R0
+w1749165820
+8test\..\src\wb_stage.sv
+R34
+L0 9
+R6
+R7
+R8
+R9
+!i113 1
+R10
